@@ -14,23 +14,15 @@ def dlgt(cls, method):
         method(self.__coll__, *args)
     return instancemethod(ret, None, cls)
 
-class Delegate(type):
-    def __init__(cls, name, bases, dct):
-        type.__init__(cls, name, bases, dct)
-        tgtclass = cls.__tgtclass__
-        for name in dir(tgtclass):
-            val = getattr(tgtclass, name)
-            if name[:2] != '__' and callable(val):
-                setattr(cls, name, dlgt(cls, val))
-
 def brdcst(cls, method):
     def ret(self, *args):
+        answer = []
         for el in self.__coll__:
-            method(el, *args)
+            answer.append( method(el, *args) )
+        return answer
     return instancemethod(ret, None, cls)
 
 class BcastColl(type):
-
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
         cls.__coll__ = []
