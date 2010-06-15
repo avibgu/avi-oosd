@@ -14,7 +14,6 @@ def dlgt(cls, method):
         method(self.__coll__, *args)
     return instancemethod(ret, None, cls)
 
-
 class Delegate(type):
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
@@ -23,44 +22,26 @@ class Delegate(type):
             val = getattr(tgtclass, name)
             if name[:2] != '__' and callable(val):
                 setattr(cls, name, dlgt(cls, val))
-                          
-                
-class BcastColl(object):
-
-    # list of instances.. initialized to an empty list..
-    __coll__ = []
-    
-    # The collection will delegate all calls to public
-    # methods of list to this ?eld.
-    # to check if string n is public use:
-    # n[:2] != '__'.
-    # an instance class of BcastColl should be a delegate of a list.
-    # You may use the Delegate meta-class shown in class.
-    
-    __metaclass__ = Delegate
-    __tgtclass__ = list
-
-    def __init__ (self):
-    
-        #self.__tgt__ = list()
-
-        # Each call to a public method of __instclass__ should be
-        # broadcast to the objects in the list _coll__.
-
-        for name in dir(self.__instclass__):
-            val = getattr(self.__instclass__, name)
-            if name[:2] != '__' and callable(val):
-                setattr(cls, name, brdcst(self, val))
-
 
 def brdcst(cls, method):
     def ret(self, *args):
-        # call method for each element in __coll__
         for el in self.__coll__:
             method(el, *args)
     return instancemethod(ret, None, cls)
 
+class BcastColl(type):
 
+    def __init__(cls, name, bases, dct):
+        type.__init__(cls, name, bases, dct)
+        cls.__coll__ = []
+        for name in dir(list):
+            val = getattr(list, name)
+            if name[:2] != '__' and callable(val):
+                setattr(cls, name, dlgt(cls, val))
+        for name in dir(cls.__instclass__):
+            val = getattr(cls.__instclass__, name)
+            if name[:2] != '__' and callable(val):
+                setattr(cls, name, brdcst(cls, val))
 
 ## Test code
 
